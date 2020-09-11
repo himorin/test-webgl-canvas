@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>WebGL/Canvas test</title>
+  <script src="webgl.js"></script>
+  <script src="matrix.js"></script>
+  <script src="draw_data.js"></script>
+  <link href="global.css" rel="stylesheet" type="text/css">
+
+  <script id="VertexShader" type="x-shader">
+    attribute vec3  position;
+    attribute vec4  color;
+    uniform   mat4  mvpMatrix;
+    uniform   float pointSize;
+    varying   vec4  vColor;
+    void main() {
+      vColor = color;
+      gl_Position = mvpMatrix * vec4(position, 1.0);
+      gl_PointSize = pointSize;
+    }
+  </script>
+  <script id="FragmentShader" type="x-shader">
+    precision mediump float;
+    varying vec4 vColor;
+    void main() {
+      gl_FragColor = vColor;
+    }
+  </script>
+</head>
+<body>
+  <canvas id="glCanvas" width="640" height="480"></canvas>
+  <p>
+    <input type="button" name="draw" id="draw" value="draw">
+  </p>
+</body>
