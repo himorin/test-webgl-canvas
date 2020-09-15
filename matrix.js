@@ -5,6 +5,7 @@
 // CalcIP : Vector inner product
 // CalcCP3 : Vector(3) cross product
 // DivVec : divide all vector items by value
+// MulVec : multiply all vector items by value
 
 // MatMul4 : Matrix(4,4) multiply
 
@@ -33,6 +34,11 @@ function CalcCP3(a, b, dest) {
 function DivVec(vec, value) {
   if (value == 0) { for (var id in vec) {vec[id] = 0.0; } }
   else { for (var id in vec) {vec[id] / value; } }
+}
+
+// multiply vector
+function MulVec(vec, value) {
+  for (var id in vec) {vec[id] *= value; };
 }
 
 // calc matrix mul

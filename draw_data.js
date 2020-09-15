@@ -64,15 +64,19 @@ function DrawPoints() {
   gl.depthFunc(gl.LEQUAL);
 
   // restart
-  gl.clearColor(1.0, 1.0, 0.0, 1.0);
+  gl.clearColor(1.0, 1.0, 1.0, 1.0);
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // projection
-  CalcSightDir([5.0, 5.0, 5.0], [0, 0, 0], [0, 1, 0], matV);
+  CalcSightDir([3.0, 3.0, 3.0], [0, 0, 0], [0, 1, 0], matV);
   // no rotate here
   CalcSightFov(100, canvas.width, canvas.height, 0.1, 100, matP);
+  ModelMove(matM, [1.0, 0.0, 2.0], matM);
+  ModelRotate(matM, 180, [0.0, 1.0, 0.0], matM);
+  ModelScale(matM, [1.0, 2.0, 3.0], matM);
   MatMul4(matP, matV, matMvp);
+  MatMul4(matMvp, matM, matMvp);
 
   // draw points by binding VBO
   BindVBO(gl, [vbo_pos, vbo_color], attLoc, attStride);

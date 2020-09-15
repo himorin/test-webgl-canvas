@@ -1,3 +1,20 @@
+// WebGL and 3D related functions
+
+// ShaderCompile: compile shader code block
+// ProgramLink: Link vertex and fragment to program
+// CreateVBO: init VBO
+// BindVBO: attach VBO
+
+// View related
+//   CalcSightDir: camera position and direction
+//   CalcSightFov: camera view - size, aspect, cut
+
+// Model operation
+//   ModelScale: scale model by vector
+//   ModelRotate: rotate model
+//   ModelMove: move model
+
+
 function ShaderCompile(obj_gl, id, type) {
   if (! document.getElementById(id)) {return; }
   var shader = obj_gl.createShader(type);
@@ -71,4 +88,50 @@ function CalcSightFov(widthDegree, width, height, near, far, dest) {
   dest[15] = 0.0;
 }
 
+// scale model matrix by specified vector
+function ModelScale(orig, scale, dest) {
+  for (i = 0; i < 3; ++i) { for (j = 0; j < 4; ++j) {
+    dest[j + 3 * i] = orig[j + 3 * i] * scale[i];
+  } }
+  for (i = 12; i < 15; ++i) { dest[i] = orig[i]; }
+}
+
+// rotate model by specified angle around axis
+//   angle: angle to rotate in degree (not radian)
+//   axis: rotation axis, origin (0,0,0)
+function ModelRotate(orig, angle, axis, dest) {
+  var a_rad = angle / 180 * Math.PI;
+  DivVec(axis, CalcEV(axis));
+  var rot_s = Math.sin(a_rad);
+  var rot_c = Math.cos(a_rad);
+  var mat_a = [
+    axis[0] * axis[0], axis[0] * axis[1], axis[0] * axis[2],
+    axis[1] * axis[0], axis[1] * axis[1], axis[1] * axis[2],
+    axis[2] * axis[0], axis[2] * axis[1], axis[2] * axis[2]
+  ];
+  MulVec(mat_a, (1 - rot_c));
+  mat_a[0] += rot_c;
+  mat_a[1] += axis[2] * rot_s;
+  mat_a[2] -= axis[1] * rot_s;
+  mat_a[3] -= axis[2] * rot_s;
+  mat_a[4] += rot_c;
+  mat_a[5] += axis[0] * rot_s;
+  mat_a[6] += axis[1] * rot_s;
+  mat_a[7] -= axis[0] * rot_s;
+  mat_a[8] += rot_c;
+  for (i = 0; i < 4; ++i) { for (j = 0; j < 3; ++j) {
+    dest[i + j * 4] = orig[i] * mat_a[j * 3] + orig[i + 4] * mat_a[j * 3 + 1]
+      + orig[i + 8] * mat_a[j * 3 + 2];
+  } }
+  for (i = 12; i < 16; ++i) { dest[i] = orig[i]; }
+}
+
+// move model matrix by specified vector
+function ModelMove(orig, move, dest) {
+  for (i = 0; i < 12; ++i) { dest[i] = orig[i]; }
+  for (i = 0; i < 4; ++i) {
+    dest[i + 12] = orig[i] * move[0] + orig[i + 4] * move[1]
+      + orig[i + 8] * move[2] + orig[i + 12]; 
+  }
+}
 
