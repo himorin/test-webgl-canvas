@@ -30,6 +30,12 @@ function glprep() {
 
   // register
   document.getElementById('draw').addEventListener('click', DrawPoints);
+  document.getElementById('reset').addEventListener('click', () => {
+      document.getElementById('rot_x_value').value = 0;
+      document.getElementById('rot_y_value').value = 0;
+      document.getElementById('rot_z_value').value = 0;
+      document.getElementById('zoom_value').value = 1.0;
+    });
   document.getElementById('rot_x_cw').addEventListener('click', () => { mod_rot('x', -5); DrawPoints(); });
   document.getElementById('rot_x_ccw').addEventListener('click', () => { mod_rot('x', 5); DrawPoints(); });
   document.getElementById('rot_y_cw').addEventListener('click', () => { mod_rot('y', -5); DrawPoints(); });
@@ -106,9 +112,9 @@ function DrawPoints() {
     parseInt(document.getElementById('rot_z_value').value)
   ];
   var c_zoom = Number(document.getElementById('zoom_value').value);
-  CalcSightDir([3.0, 0.0, 0.0], [0, 0, 0], [0, 1, 0], matV);
-  CalcSightFov(100, canvas.width, canvas.height, 0.1, 1000, matP);
-//  ModelMove(matM, [1.0, 0.0, 2.0], matM);
+  CalcSightDir([5.0, 5.0, 0.0], [0, 0, 0], [0, 0, 1], matV);
+  CalcSightFov(90, canvas.width, canvas.height, 0.1, 100, matP);
+  ModelMove(matM, [1.0, 0.0, 2.0], matM);
   ModelRotateXYZ(matM, rot_angle, matM);
   ModelScale(matM, [c_zoom, c_zoom, c_zoom], matM);
   MatMul4(matP, matV, matMvp);

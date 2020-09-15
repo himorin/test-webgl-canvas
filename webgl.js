@@ -60,8 +60,8 @@ function BindVBO(obj_gl, vbo, attLoc, attStride) {
 // dest shall be identical 4x4 matrix (or not modified if error)
 function CalcSightDir(cam, cent, up, dest) {
   if (cam[0] == cent[0] && cam[1] == cent[1] && cam[2] == cent[2]) {return; }
-  var x = [0, 0, 0]; var y = [0, 0, 0]; var z = [0, 0, 0]; var idx =0;
-  z[0] = cam[0] - cent[0]; z[1] = cam[1] - cent[1]; z[2] = cam[2] - cent[2];
+  var x = [0, 0, 0]; var y = [0, 0, 0]; var z = [0, 0, 0];
+  for (i = 0; i < 3; ++i) { z[i] = cam[i] - cent[i]; }
   DivVec(z, CalcEV(z));
   CalcCP3(up, z, x);
   DivVec(x, CalcEV(x));
@@ -77,7 +77,7 @@ function CalcSightDir(cam, cent, up, dest) {
 // create sight FoV matrix from degree, canvas size, near/far
 // no need to initialize dest
 function CalcSightFov(widthDegree, width, height, near, far, dest) {
-  var a = near * Math.tan(widthDegree * Math.PI / 360);
+  var a = near * Math.tan(widthDegree * Math.PI / 180.0 / 2.0);
   var b = a * width / height;
   var c = far - near;
   dest[0] = near / b; dest[1] = 0.0; dest[2] = 0.0; dest[3] = 0.0;
@@ -90,6 +90,7 @@ function CalcSightFov(widthDegree, width, height, near, far, dest) {
 
 // scale model matrix by specified vector
 function ModelScale(orig, scale, dest) {
+  // 1-to-1 from orig to dest, no need to copy as buffer
   for (i = 0; i < 3; ++i) { for (j = 0; j < 4; ++j) {
     dest[j + 3 * i] = orig[j + 3 * i] * scale[i];
   } }
@@ -100,6 +101,8 @@ function ModelScale(orig, scale, dest) {
 //   angle: angle to rotate in degree (not radian)
 //   axis: rotation axis, origin (0,0,0)
 function ModelRotate(orig, angle, axis, dest) {
+  // orig to dest with complex relation, copy first
+  var c_orig = new Float32Array(orig);
   var a_rad = angle / 180 * Math.PI;
   DivVec(axis, CalcEV(axis));
   var rot_s = Math.sin(a_rad);
@@ -120,10 +123,10 @@ function ModelRotate(orig, angle, axis, dest) {
   mat_a[7] -= axis[0] * rot_s;
   mat_a[8] += rot_c;
   for (i = 0; i < 4; ++i) { for (j = 0; j < 3; ++j) {
-    dest[i + j * 4] = orig[i] * mat_a[j * 3] + orig[i + 4] * mat_a[j * 3 + 1]
-      + orig[i + 8] * mat_a[j * 3 + 2];
+    dest[i + j * 4] = c_orig[i] * mat_a[j * 3]
+      + c_orig[i + 4] * mat_a[j * 3 + 1] + c_orig[i + 8] * mat_a[j * 3 + 2];
   } }
-  for (i = 12; i < 16; ++i) { dest[i] = orig[i]; }
+  for (i = 12; i < 16; ++i) { dest[i] = c_orig[i]; }
 }
 function ModelRotateXYZ(orig, angle, dest) {
   ModelRotate(orig, angle[0], [1.0, 0.0, 0.0], dest);
@@ -133,10 +136,12 @@ function ModelRotateXYZ(orig, angle, dest) {
 
 // move model matrix by specified vector
 function ModelMove(orig, move, dest) {
-  for (i = 0; i < 12; ++i) { dest[i] = orig[i]; }
+  // orig to dest with complex relation, copy first
+  var c_orig = new Float32Array(orig);
+  for (i = 0; i < 12; ++i) { dest[i] = c_orig[i]; }
   for (i = 0; i < 4; ++i) {
-    dest[i + 12] = orig[i] * move[0] + orig[i + 4] * move[1]
-      + orig[i + 8] * move[2] + orig[i + 12]; 
+    dest[i + 12] = c_orig[i] * move[0] + c_orig[i + 4] * move[1]
+      + c_orig[i + 8] * move[2] + c_orig[i + 12]; 
   }
 }
 
