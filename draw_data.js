@@ -30,8 +30,15 @@ function glprep() {
 
   // register
   document.getElementById('draw').addEventListener('click', DrawPoints);
+  document.getElementById('rot_cw').addEventListener('click', () => { mod_rot(-5); DrawPoints(); });
+  document.getElementById('rot_ccw').addEventListener('click', () => { mod_rot(5); DrawPoints(); });
 }
 window.addEventListener('load', glprep);
+
+function mod_rot(angle) {
+  var c_angle = parseInt(document.getElementById('rot_value').value);
+  document.getElementById('rot_value').value = c_angle + angle;
+}
 
 // test function
 function DrawPoints() {
@@ -69,11 +76,12 @@ function DrawPoints() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // projection
+  var rot_angle = parseInt(document.getElementById('rot_value').value);
   CalcSightDir([3.0, 3.0, 3.0], [0, 0, 0], [0, 1, 0], matV);
   // no rotate here
   CalcSightFov(100, canvas.width, canvas.height, 0.1, 100, matP);
   ModelMove(matM, [1.0, 0.0, 2.0], matM);
-  ModelRotate(matM, 180, [0.0, 1.0, 0.0], matM);
+  ModelRotate(matM, rot_angle, [0.0, 1.0, 0.0], matM);
   ModelScale(matM, [1.0, 2.0, 3.0], matM);
   MatMul4(matP, matV, matMvp);
   MatMul4(matMvp, matM, matMvp);
