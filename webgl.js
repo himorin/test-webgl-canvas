@@ -125,6 +125,11 @@ function ModelRotate(orig, angle, axis, dest) {
   } }
   for (i = 12; i < 16; ++i) { dest[i] = orig[i]; }
 }
+function ModelRotateXYZ(orig, angle, dest) {
+  ModelRotate(orig, angle[0], [1.0, 0.0, 0.0], dest);
+  ModelRotate(dest, angle[1], [0.0, 1.0, 0.0], dest);
+  ModelRotate(dest, angle[2], [0.0, 0.0, 1.0], dest);
+}
 
 // move model matrix by specified vector
 function ModelMove(orig, move, dest) {
