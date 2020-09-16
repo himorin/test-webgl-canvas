@@ -112,11 +112,16 @@ function DrawPoints() {
     parseInt(document.getElementById('rot_z_value').value)
   ];
   var c_zoom = Number(document.getElementById('zoom_value').value);
-  CalcSightDir([5.0, 5.0, 0.0], [0, 0, 0], [0, 0, 1], matV);
+  var sight = [
+    Number(document.getElementById("sight_x").value),
+    Number(document.getElementById("sight_y").value),
+    Number(document.getElementById("sight_z").value),
+  ];
+  CalcSightDir(sight, [0, 0, 0], [0, 0, 1], matV);
   CalcSightFov(90, canvas.width, canvas.height, 0.1, 100, matP);
   ModelMove(matM, [1.0, 0.0, 2.0], matM);
-  ModelRotateXYZ(matM, rot_angle, matM);
   ModelScale(matM, [c_zoom, c_zoom, c_zoom], matM);
+  ModelRotateXYZ(matM, rot_angle, matM);
   MatMul4(matP, matV, matMvp);
   MatMul4(matMvp, matM, matMvp);
 

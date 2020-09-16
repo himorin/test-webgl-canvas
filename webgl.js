@@ -92,7 +92,7 @@ function CalcSightFov(widthDegree, width, height, near, far, dest) {
 function ModelScale(orig, scale, dest) {
   // 1-to-1 from orig to dest, no need to copy as buffer
   for (i = 0; i < 3; ++i) { for (j = 0; j < 4; ++j) {
-    dest[j + 3 * i] = orig[j + 3 * i] * scale[i];
+    dest[j + 4 * i] = orig[j + 4 * i] * scale[i];
   } }
   for (i = 12; i < 15; ++i) { dest[i] = orig[i]; }
 }
