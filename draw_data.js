@@ -5,7 +5,6 @@ var attLoc;
 var attStride;
 
 var fetch_data = [];
-var fetch_data_cline = 0;
 var fetch_data_run = 0;
 var fetch_data_interval = 500;
 
@@ -81,6 +80,7 @@ function mod_zoom(mul) {
 // test function
 function DrawPoints() {
   // position array, (x, y, z) * n : [x1, y1, z1, x2, y2, z2, ...]
+  var fetch_data_cline = parseInt(document.getElementById('data_cur').value);
   if ((fetch_data_cline < 0) || (fetch_data_cline >= fetch_data.length)) {
     console.log("Error, target line number is out of scope");
     return;
@@ -194,11 +194,11 @@ function LoadCSV() {
 }
 
 function ShowData(hop) {
-  var next = fetch_data_cline + hop;
+  var next = parseInt(document.getElementById('data_cur').value);
+  next += hop;
   if (next < 0) {next = 0; }
   if (next >= fetch_data.length) {next = fetch_data.length - 1; }
-  document.getElementById('data_cur').innerText = (next + 1);
-  fetch_data_cline = next;
+  document.getElementById('data_cur').value = (next + 1);
   DrawPoints();
 }
 
