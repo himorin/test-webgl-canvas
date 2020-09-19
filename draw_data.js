@@ -4,6 +4,9 @@ var obj_program;
 var attLoc;
 var attStride;
 
+var fetch_data = [];
+var fetch_data_cline = 0;
+
 const def_zoom = 1.5;
 
 // gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) / 1 - 1024
@@ -39,6 +42,9 @@ function glprep() {
     });
   reg_click_func([
     { 'id': 'draw', 'func': DrawPoints },
+    { 'id': 'data_load', 'func': LoadCSV },
+    { 'id': 'data_prev', 'func': () => { ShowData(-1); } },
+    { 'id': 'data_next', 'func': () => { ShowData(1); } },
     { 'id': 'rot_x_cw', 'func': () => { mod_rot('x', -5); DrawPoints(); } },
     { 'id': 'rot_x_ccw', 'func': () => { mod_rot('x', 5); DrawPoints(); } },
     { 'id': 'rot_y_cw', 'func': () => { mod_rot('y', -5); DrawPoints(); } },
@@ -71,21 +77,11 @@ function mod_zoom(mul) {
 // test function
 function DrawPoints() {
   // position array, (x, y, z) * n : [x1, y1, z1, x2, y2, z2, ...]
-  var Points = [
-    0.468607683, -0.978142191, -0.319667821, 
-    0.437444631, -0.049387894, -0.411988899,
-    0.5860541, -0.038146786, -0.302015356,
-    0.424635134, -0.854599125, -0.3967066,
-    -0.021235744, -0.335744801, 0.698467861,
-    0.249373378, -0.262793553, -0.789697268,
-    0.480568176, -0.671158217, -0.679282514,
-    0.194557086, -0.86226626, -0.005828229,
-    0.652681012, -0.936629468, -0.181808678,
-    -0.408662032, -0.671146841, 0.262287503
-//      0.0, 1.0, 0.0,   1.0, 0.0, 0.0,   -1.0, 0.0, 0.0
-//      0.0, 0.0, 0.0,  1.0, 0.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 1.0, 
-//      -1.0, 0.0, 0.0,  0.0, -1.0, 0.0,  0.0, 0.0, -1.0
-  ];
+  if ((fetch_data_cline < 0) || (fetch_data_cline >= fetch_data.length)) {
+    console.log("Error, target line number is out of scope");
+    return;
+  }
+  var Points = fetch_data[fetch_data_cline];
   // color array, (r, g, b, a) * n : [r1, g1, b1, a1, r2, g2, b2, a2, ...]
   var Colors = [
       0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,
@@ -142,9 +138,9 @@ function DrawPoints() {
   gl.uniform1f(uniLocation[1], pointSize);
   gl.drawArrays(gl.POINTS, 0, Points.length / 3);
 
-  BindVBO(gl, [vbo_pos, vbo_color], attLoc, attStride);
-  gl.uniformMatrix4fv(uniLocation[0], false, matMvp);
-  gl.drawArrays(gl.LINE_STRIP, 0, Points.length / 3);
+//  BindVBO(gl, [vbo_pos, vbo_color], attLoc, attStride);
+//  gl.uniformMatrix4fv(uniLocation[0], false, matMvp);
+//  gl.drawArrays(gl.LINE_STRIP, 0, Points.length / 3);
 
   DrawAxis(matMvp);
   // show
@@ -163,5 +159,40 @@ function DrawLines(l_pos, l_col, matMvp) {
   gl.uniformMatrix4fv(uniLocMvp, false, matMvp);
 //  gl.uniformMatrix4fv(gl.getUniformLocation(obj_program, 'mvpMatrix'), false, matMvp);
   gl.drawArrays(gl.LINE_STRIP, 0, l_pos.length / 3);
+}
+
+
+function LoadCSV() {
+  var target = document.getElementById('data_url').value;
+  fetch(target, { mode: 'cors' })
+  .then(function(response) {
+    if (response.ok) {return response.text(); }
+    throw Error('Returned response for data: ' + response.status);
+  }).then(function(data) {
+    fetch_data = [];
+    var data_lines = data.split('\n');
+    data_lines.shift(); // remove first label line
+    data_lines.forEach((line) => {
+      var data_dat = [];
+      data_dat = line.split(',');
+      for (var id in data_dat) {
+        data_dat[id] = Number(data_dat[id].trim());
+      }
+      fetch_data.push(data_dat);
+    });
+    document.getElementById('data_total').innerText = fetch_data.length;
+  }).catch(function(error) {
+    console.log('Error found on loading data: ' + error.message);
+    window.alert('Error found on loading data: ' + error.message);
+  });
+}
+
+function ShowData(hop) {
+  var next = fetch_data_cline + hop;
+  if (next < 0) {next = 0; }
+  if (next >= fetch_data.length) {next = fetch_data.length - 1; }
+  document.getElementById('data_cur').innerText = (next + 1);
+  fetch_data_cline = next;
+  DrawPoints();
 }
 
