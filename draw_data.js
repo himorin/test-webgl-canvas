@@ -86,6 +86,7 @@ function DrawPoints() {
     return;
   }
   var Points = fetch_data[fetch_data_cline];
+  OutRawData(Points);
   // color array, (r, g, b, a) * n : [r1, g1, b1, a1, r2, g2, b2, a2, ...]
   var Colors = [];
   for (var i = 0; i < 5; ++i) { Colors.push([1.0, 0.0, 0.0, 1.0]); }
@@ -217,4 +218,71 @@ function StopAnim() {
   fetch_data_run = 0;
 }
 
+function OutRawData(data) {
+  var show = "";
+  // helpers
+  var stat = (varr) => {
+    var mid = [ 0.0, 0.0, 0.0 ];
+    for (var i = 0; i < 5; ++i) { for (var ax = 0; ax < 3; ++ax) {
+      mid[ax] += varr[i * 3 + ax];
+    } };
+    for (var ax = 0; ax < 3; ++ax) { mid[ax] /= 5.0; }
+    return mid;
+  };
+  var num_text = (val) => {
+    var ret = "";
+    if (val >= 0.0) { ret += "+" + val; } else { ret += val; }
+    ret = ret.substring(0, 7); // +X.XXXX
+    return ret;
+  };
+  var calc_dist = (v1, v2) => {
+    var sum = 0.0;
+    for (var i = 0; i < 3; ++i) { sum += (v1[i] - v2[i]) ** 2; }
+    return Math.sqrt(sum);
+  };
+  // calc stat
+  var g_left = stat(data.slice(0, 15));
+  var g_right = stat(data.slice(15));
+  var stat_lines = [ '', '', '', '', '' ];
+  var dist_left = [
+    calc_dist(data.slice( 0,  3), g_left),
+    calc_dist(data.slice( 3,  6), g_left), 
+    calc_dist(data.slice( 6,  9), g_left), 
+    calc_dist(data.slice( 9, 12), g_left), 
+    calc_dist(data.slice(12, 15), g_left)
+  ];
+  var dist_right = [
+    calc_dist(data.slice(15, 18), g_left),
+    calc_dist(data.slice(18, 21), g_left), 
+    calc_dist(data.slice(21, 24), g_left), 
+    calc_dist(data.slice(24, 27), g_left), 
+    calc_dist(data.slice(27, 30), g_left)
+  ];
+  var stat_left = [ 0.0, 0.0 ];
+  var stat_right = [ 0.0, 0.0 ];
+  for (var i = 0; i < 5; ++i) {
+    stat_left[0] += dist_left[i]; stat_left[1] += dist_left[i] ** 2;
+    stat_right[0] += dist_right[i]; stat_right[1] += dist_right[i] ** 2;
+  }
+  stat_left[1] = Math.sqrt(stat_left[1]);
+  stat_right[1] = Math.sqrt(stat_right[1]);
+  stat_lines[0] += "SUM    (" + num_text(stat_left[0]) + ", " + num_text(stat_right[0]) + ")";
+  stat_lines[1] += "M-SQ   (" + num_text(stat_left[1]) + ", " + num_text(stat_right[1]) + ")";
+  // start output
+  show += "RAW\n";
+  show += "  LEFT                         RIGHT                            STAT (LEFT, RIGHT)\n";
+  for (var i = 0; i < 5; ++i) {
+    show += "  (" + num_text(data[i * 3]) + ", " + num_text(data[i * 3 + 1]) +
+      ", " + num_text(data[i * 3 + 2]) + ") ";
+    show += "(" + num_text(data[i * 3 + 15]) + ", " + num_text(data[i * 3 + 16]) +
+      ", " + num_text(data[i * 3 + 17]) + ") ";
+    show += "        ";
+    show += stat_lines[i];
+    show += "\n";
+  }
+  show += "G ";
+  show += "(" + num_text(g_left[0]) + ", " + num_text(g_left[1]) + ", " + num_text(g_left[2]) + ") ";
+  show += "(" + num_text(g_right[0]) + ", " + num_text(g_right[1]) + ", " + num_text(g_right[2]) + ") ";
+  document.getElementById('data_calc').innerText = show;
+}
 

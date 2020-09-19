@@ -7,7 +7,15 @@
   <script src="matrix.js"></script>
   <script src="draw_data.js"></script>
   <link href="global.css" rel="stylesheet" type="text/css">
-
+  <style type="text/css">
+    .right-panel {
+      float: right;
+      width: calc(100% - 660px);
+    }
+    .calc-result {
+      width: 100%;
+    }
+  </style>
   <script id="VertexShader" type="x-shader">
     attribute vec3  position;
     attribute vec4  color;
@@ -30,6 +38,7 @@
 </head>
 <body>
   <canvas id="glCanvas" width="640" height="480"></canvas>
+  <div class="right-panel">
   <p>
     <input type="button" name="draw" id="draw" value="draw">
     <input type="button" name="reset" id="reset" value="reset">
@@ -37,7 +46,8 @@
   <p>
     Data: <input type="text" name="data_url" id="data_url" size="60"></input>
     <input type="button" name="data_load" id="data_load" value="Load">
-    /
+  </p>
+  <p>
     <input type="button" name="data_prev" id="data_prev" value="<<">
     <input type="text" name="data_cur" id="data_cur" value="0" size="10">
     <input type="button" name="data_next" id="data_next" value=">>">
@@ -76,4 +86,8 @@
       <li>Z: <input type="text" name="sight_z" id="sight_z" value="0"></li>
     </ul>
   </p>
+  </div>
+  <div class="calc-result">
+    <pre id="data_calc"></pre>
+  </div>
 </body>
