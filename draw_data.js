@@ -6,6 +6,8 @@ var attStride;
 
 var fetch_data = [];
 var fetch_data_cline = 0;
+var fetch_data_run = 0;
+var fetch_data_interval = 500;
 
 const def_zoom = 1.5;
 
@@ -45,6 +47,8 @@ function glprep() {
     { 'id': 'data_load', 'func': LoadCSV },
     { 'id': 'data_prev', 'func': () => { ShowData(-1); } },
     { 'id': 'data_next', 'func': () => { ShowData(1); } },
+    { 'id': 'data_run', 'func': StartAnim },
+    { 'id': 'data_stop', 'func': StopAnim },
     { 'id': 'rot_x_cw', 'func': () => { mod_rot('x', -5); DrawPoints(); } },
     { 'id': 'rot_x_ccw', 'func': () => { mod_rot('x', 5); DrawPoints(); } },
     { 'id': 'rot_y_cw', 'func': () => { mod_rot('y', -5); DrawPoints(); } },
@@ -83,14 +87,10 @@ function DrawPoints() {
   }
   var Points = fetch_data[fetch_data_cline];
   // color array, (r, g, b, a) * n : [r1, g1, b1, a1, r2, g2, b2, a2, ...]
-  var Colors = [
-      0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,
-      0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,
-      0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,   0.0, 0.0, 0.0, 1.0,
-      0.0, 0.0, 0.0, 1.0
-//      0, 1, 0, 1,   1, 0, 0, 1.0,   1, 0, 0, 1,   0, 0, 1, 1,
-//      0, 1, 0, 1,   1, 0, 0, 1.0,   1, 0, 0, 1 
-  ];
+  var Colors = [];
+  for (var i = 0; i < 5; ++i) { Colors.push([1.0, 0.0, 0.0, 1.0]); }
+  for (var i = 0; i < 5; ++i) { Colors.push([0.0, 1.0, 0.0, 1.0]); }
+  Colors = Colors.flat();
   var vbo_pos = CreateVBO(gl, Points);
   var vbo_color = CreateVBO(gl, Colors);
   var uniLocation = new Array();
@@ -164,6 +164,7 @@ function DrawLines(l_pos, l_col, matMvp) {
 
 function LoadCSV() {
   var target = document.getElementById('data_url').value;
+  document.getElementById('data_total').innerText = 'loading...';
   fetch(target, { mode: 'cors' })
   .then(function(response) {
     if (response.ok) {return response.text(); }
@@ -174,16 +175,21 @@ function LoadCSV() {
     data_lines.shift(); // remove first label line
     data_lines.forEach((line) => {
       var data_dat = [];
+      var flag = 0;
       data_dat = line.split(',');
       for (var id in data_dat) {
         data_dat[id] = Number(data_dat[id].trim());
+        if (isNaN(data_dat[id])) {++flag; }
       }
-      fetch_data.push(data_dat);
+      if ((flag == 0) && (data_dat.length == 30)) {
+        fetch_data.push(data_dat);
+      }
     });
     document.getElementById('data_total').innerText = fetch_data.length;
   }).catch(function(error) {
     console.log('Error found on loading data: ' + error.message);
     window.alert('Error found on loading data: ' + error.message);
+    document.getElementById('data_total').innerText = 'ERROR';
   });
 }
 
@@ -195,4 +201,20 @@ function ShowData(hop) {
   fetch_data_cline = next;
   DrawPoints();
 }
+
+function StartAnim() {
+  if (fetch_data_run != 0) {return; }
+  document.getElementById('data_run').disabled = true;
+  document.getElementById('data_stop').disabled = false;
+  fetch_data_run = setInterval(() => ShowData(1), fetch_data_interval);
+}
+
+function StopAnim() {
+  if (fetch_data_run == 0) {return; }
+  clearInterval(fetch_data_run);
+  document.getElementById('data_run').disabled = false;
+  document.getElementById('data_stop').disabled = true;
+  fetch_data_run = 0;
+}
+
 
